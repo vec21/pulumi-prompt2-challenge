@@ -1,0 +1,5 @@
+config:
+  aws:region: us-west-2
+  my_Pulume:errorDocument: error.html
+  my_Pulume:indexDocument: index.html
+  my_Pulume:path: ./www

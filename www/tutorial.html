@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial: Building with Pulumi</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>My Journey with Pulumi</h1>
+            <ul>
+                <li><a href="index.html">Diary</a></li>
+                <li><a href="tutorial.html" class="active">Tutorial</a></li>
+                <li><a href="https://dev.to" target="_blank">Dev.to</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="tutorial">
+            <h2>How I Did It: Step-by-Step Tutorial</h2>
+            <p>Here’s how I built this site and other AWS resources with Pulumi. Let’s walk through it together!</p>
+            
+            <h3>1. Setting Up Pulumi and AWS CLI on Ubuntu</h3>
+            <pre id="step1">sudo apt update
+sudo apt install unzip curl -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+
+curl -fsSL https://get.pulumi.com | sh
+echo 'export PATH=$PATH:$HOME/.pulumi/bin' >> ~/.bashrc
+source ~/.bashrc
+pulumi version</pre>
+            <button onclick="copyToClipboard('step1')">Copy</button>
+            <p>I installed AWS CLI and Pulumi on Ubuntu. The <code>--version</code> commands confirmed everything worked.</p>
+
+            <h3>2. Creating an IAM User in AWS</h3>
+            <p>In the AWS console, I set up a user for Pulumi:</p>
+            <ol>
+                <li>Go to <strong>IAM</strong> > <strong>User Groups</strong> > <strong>Create Group</strong>.</li>
+                <li>Name it <code>PulumiUsers</code>.</li>
+                <li>Attach policies: <code>AmazonEC2FullAccess</code>, <code>AmazonS3FullAccess</code>, <code>CloudFrontFullAccess</code>, <code>IAMFullAccess</code>.</li>
+                <li>Create the group.</li>
+                <li>Go to <strong>Users</strong> > <strong>Add users</strong>.</li>
+                <li>Name: <code>pulumi-user</code>, access: <strong>Programmatic access</strong>, group: <code>PulumiUsers</code>.</li>
+                <li>Save the <code>Access Key ID</code> and <code>Secret Access Key</code> from the <code>.csv</code>.</li>
+            </ol>
+            <img src="./assets/userCredia.gif" alt="IAM User Creation" style="max-width: 100%;">
+
+            <h3>3. Configuring AWS Credentials</h3>
+            <pre id="step2">aws configure</pre>
+            <button onclick="copyToClipboard('step2')">Copy</button>
+            <p>I entered my <code>Access Key ID</code>, <code>Secret Access Key</code>, region (<code>us-east-1</code>), and output format (<code>json</code>).</p>
+            <img src="./assets/AwsCli.png" alt="AWS CLI Config" style="max-width: 100%;">
+
+            <h3>4. Creating an EC2 Instance</h3>
+            <pre id="step3">mkdir my-ec2 && cd my-ec2
+pulumi new vm-aws-python</pre>
+            <button onclick="copyToClipboard('step3')">Copy</button>
+            <p>I used Pulumi’s <code>vm-aws-python</code> template to spin up a simple EC2 instance. Then I ran:</p>
+            <pre id="step3-deploy">pulumi up</pre>
+            <button onclick="copyToClipboard('step3-deploy')">Copy</button>
+            <p>Confirmed with "yes," and my first IaC resource was live!</p>
+            <img src="./assets/architecture.png" alt="EC2 Architecture" style="max-width: 100%;">
+
+            <h3>5. Building the Static S3 Website</h3>
+            <pre id="step4">mkdir my-site && cd my-site
+pulumi new static-website-aws-python</pre>
+            <button onclick="copyToClipboard('step4')">Copy</button>
+            <p>I created a new project for the static site you’re seeing now.</p>
+
+            <h3>6. Fixing an S3 Error</h3>
+            <p>When I ran <code>pulumi up</code>, I got this error:</p>
+            <pre>TypeError: BucketV2._internal_init() got an unexpected keyword argument 'website'</pre>
+            <img src="./assets/errorPulumi.png" alt="Pulumi Error" style="max-width: 100%;">
+            <p>The fix? I updated <code>__main__.py</code> to separate the bucket and website config:</p>
+            <pre id="step5-fix">bucket = aws.s3.BucketV2("bucket")
+aws.s3.BucketWebsiteConfigurationV2(
+    "bucket-website",
+    bucket=bucket.bucket,
+    index_document={"suffix": "index.html"},
+    error_document={"key": "error.html"}
+)
+aws.s3.BucketPublicAccessBlock("public-access-block", bucket=bucket.bucket, block_public_acls=False)
+aws.s3.BucketOwnershipControls("ownership-controls", bucket=bucket.bucket, rule={"object_ownership": "ObjectWriter"})</pre>
+            <button onclick="copyToClipboard('step5-fix')">Copy</button>
+
+            <h3>7. Adding CloudFront and Deploying</h3>
+            <p>I edited <code>__main__.py</code> to include CloudFront (full code below), then deployed:</p>
+            <pre id="step6">pulumi up --refresh</pre>
+            <button onclick="copyToClipboard('step6')">Copy</button>
+            <p>The <code>--refresh</code> synced everything, and I got the URLs for my site!</p>
+            <img src="./assets/architectureS3.png" alt="S3 Architecture" style="max-width: 100%;">
+
+            <h3>8. Final Code</h3>
+            <p>Here’s the complete <code>__main__.py</code> for this site:</p>
+            <pre id="step7">import pulumi
+import pulumi_aws as aws
+import pulumi_synced_folder as synced_folder
+
+config = pulumi.Config()
+path = config.get("path") or "./www"
+index_document = config.get("indexDocument") or "index.html"
+error_document = config.get("errorDocument") or "error.html"
+
+bucket = aws.s3.BucketV2("bucket")
+bucket_website = aws.s3.BucketWebsiteConfigurationV2(
+    "bucket-website", bucket=bucket.bucket,
+    index_document={"suffix": index_document}, error_document={"key": error_document}
+)
+aws.s3.BucketOwnershipControls("ownership-controls", bucket=bucket.bucket, rule={"object_ownership": "ObjectWriter"})
+aws.s3.BucketPublicAccessBlock("public-access-block", bucket=bucket.bucket, block_public_acls=False)
+bucket_folder = synced_folder.S3BucketFolder(
+    "bucket-folder", acl="public-read", bucket_name=bucket.bucket, path=path,
+    opts=pulumi.ResourceOptions(depends_on=[ownership_controls, public_access_block])
+)
+
+cdn = aws.cloudfront.Distribution(
+    "cdn", enabled=True,
+    origins=[{
+        "origin_id": bucket.arn, "domain_name": bucket_website.website_endpoint,
+        "custom_origin_config": {"origin_protocol_policy": "http-only", "http_port": 80, "https_port": 443, "origin_ssl_protocols": ["TLSv1.2"]}
+    }],
+    default_cache_behavior={
+        "target_origin_id": bucket.arn, "viewer_protocol_policy": "redirect-to-https",
+        "allowed_methods": ["GET", "HEAD", "OPTIONS"], "cached_methods": ["GET", "HEAD", "OPTIONS"],
+        "default_ttl": 600, "max_ttl": 600, "min_ttl": 600,
+        "forwarded_values": {"query_string": True, "cookies": {"forward": "all"}}
+    },
+    price_class="PriceClass_100",
+    custom_error_responses=[{"error_code": 404, "response_code": 404, "response_page_path": f"/{error_document}"}],
+    restrictions={"geo_restriction": {"restriction_type": "none"}},
+    viewer_certificate={"cloudfront_default_certificate": True}
+)
+
+pulumi.export("originURL", pulumi.Output.concat("http://", bucket_website.website_endpoint))
+pulumi.export("cdnURL", pulumi.Output.concat("https://", cdn.domain_name))</pre>
+            <button onclick="copyToClipboard('step7')">Copy</button>
+        </section>
+    </main>
+    
+    <footer>
+        <p>© 2025 Veríssimo | Built with <a href="https://www.pulumi.com" target="_blank">Pulumi</a> | More coming soon on <a href="https://dev.to" target="_blank">Dev.to</a></p>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>

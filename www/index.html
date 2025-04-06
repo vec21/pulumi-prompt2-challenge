@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journey with Pulumi</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>My Journey with Pulumi</h1>
+            <ul>
+                <li><a href="index.html" class="active">Diary</a></li>
+                <li><a href="tutorial.html">Tutorial</a></li>
+                <li><a href="https://dev.to" target="_blank">Dev.to</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="diario">
+            <h2>My Story</h2>
+            <p>Hey there! I’m Veríssimo, and this is my story of learning Infrastructure as Code (IaC) with Pulumi.</p>
+            <p>I used to spend hours clicking around in the AWS console to set up EC2 instances and S3 buckets. It was tedious and slow! Everything changed when I discovered Pulumi. With it, I wrote Python code to automate everything—from an EC2 instance to the static site you’re looking at right now, hosted on S3 with CloudFront for extra speed.</p>
+            <p>I hit a snag early on: my Windows username, "Veríssimo," has an accent, which messed up Pulumi’s paths. I tried switching to "Verissimo" without the accent, but after rebooting, my password stopped working—total chaos! Luckily, I have a dual-boot setup with Ubuntu. I switched over, set everything up in a flash, and boom: it worked!</p>
+            <p>With Pulumi, I built:
+                <ul>
+                    <li>A simple EC2 instance to get started.</li>
+                    <li>An S3 bucket turned into a static website.</li>
+                    <li>A CloudFront CDN to make this site fast and secure!</li>
+                </ul>
+            </p>
+            <p>Want to see how I did it? Check out the <a href="tutorial.html">interactive tutorial</a>!</p>
+        </section>
+    </main>
+    
+    <footer>
+        <p>© 2025 Veríssimo | Built with <a href="https://www.pulumi.com" target="_blank">Pulumi</a> | More coming soon on <a href="https://dev.to" target="_blank">Dev.to</a></p>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>

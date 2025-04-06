@@ -1,0 +1,11 @@
+name: my_Pulume
+description: first website
+runtime:
+  name: python
+  options:
+    toolchain: pip
+    virtualenv: venv
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: static-website-aws-python
