@@ -146,9 +146,8 @@ pulumi-prompt-2/
 ---
 
 ## 🏆 Pulumi Contest
-
-This project was created as part of the **Pulumi + DEV.to** contest.
-🔗 The link to the article with my submission will be added here after publication.
+This project was created as part of the **Pulumi + DEV.to** contest.  
+🔗 Check out my submission article: [Pulumi + GitHub Actions: A CI/CD Pipeline for AWS S3 Deployment](https://dev.to/vec21/pulumi-github-actions-a-cicd-pipeline-for-aws-s3-deployment-klh)
 
 ---
 
